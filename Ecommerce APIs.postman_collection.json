@@ -1,0 +1,305 @@
+{
+	"info": {
+		"_postman_id": "6797fa61-9832-4ac2-b113-69a4ecf87b19",
+		"name": "Ecommerce APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47255363",
+		"_collection_link": "https://uusamaahmed1-9544036.postman.co/workspace/usama-ahmed's-Workspace~1d166fa3-0f33-4c7f-8994-37370d001698/collection/47255363-6797fa61-9832-4ac2-b113-69a4ecf87b19?action=share&source=collection_link&creator=47255363"
+	},
+	"item": [
+		{
+			"name": "Register user Api",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"khan\",\r\n  \"email\": \"khan@example.com\",\r\n  \"password\": \"12345610\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/users/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login user",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"usama@example.com\",\r\n  \"password\": \"123456789\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "profile",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODkyZjI2MDZhNjdjM2QxMjgwYWYyNTMiLCJpYXQiOjE3NTQ0Njc1ODYsImV4cCI6MTc1NDQ3MTE4Nn0.Sp8ctqWpzljEza_HQ-cUp-68dMhUEmkqoT51_Z5dgzY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODkyZjI2MDZhNjdjM2QxMjgwYWYyNTMiLCJpYXQiOjE3NTQ0NjE0NTEsImV4cCI6MTc1NDQ2NTA1MX0.0800WJEiKrZxosLbftUU7Jv6ahbsRlBWsR_CryGaM-4",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:5000/api/users/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "products",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add products",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODkyZjI2MDZhNjdjM2QxMjgwYWYyNTMiLCJpYXQiOjE3NTQ0NjE0NTEsImV4cCI6MTc1NDQ2NTA1MX0.0800WJEiKrZxosLbftUU7Jv6ahbsRlBWsR_CryGaM-4",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Samsung Galaxy S22\",\r\n  \"price\": 1200,\r\n  \"description\": \"Flagship Samsung phone\",\r\n  \"image\": \"s22.jpg\",\r\n  \"category\": \"Mobile\",\r\n  \"stock\": 10\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "cart",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODkyZjI2MDZhNjdjM2QxMjgwYWYyNTMiLCJpYXQiOjE3NTQ0NjE0NTEsImV4cCI6MTc1NDQ2NTA1MX0.0800WJEiKrZxosLbftUU7Jv6ahbsRlBWsR_CryGaM-4",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"productId\": \"6892fb116a67c3d1280af25b\",\r\n  \"quantity\": 2\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/cart/add",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"cart",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "carts",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODkyZjI2MDZhNjdjM2QxMjgwYWYyNTMiLCJpYXQiOjE3NTQ0NjE0NTEsImV4cCI6MTc1NDQ2NTA1MX0.0800WJEiKrZxosLbftUU7Jv6ahbsRlBWsR_CryGaM-4",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:5000/api/cart/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"cart",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create order",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODkyZjI2MDZhNjdjM2QxMjgwYWYyNTMiLCJpYXQiOjE3NTQ0NjE0NTEsImV4cCI6MTc1NDQ2NTA1MX0.0800WJEiKrZxosLbftUU7Jv6ahbsRlBWsR_CryGaM-4",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:5000/api/orders/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"orders",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "myorders",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODkyZjI2MDZhNjdjM2QxMjgwYWYyNTMiLCJpYXQiOjE3NTQ0NjE0NTEsImV4cCI6MTc1NDQ2NTA1MX0.0800WJEiKrZxosLbftUU7Jv6ahbsRlBWsR_CryGaM-4",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:5000/api/orders/my-orders",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"orders",
+						"my-orders"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
