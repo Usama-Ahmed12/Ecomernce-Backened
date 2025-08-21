@@ -23,6 +23,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes); // ✅ Use product routes
+// Static folder for uploaded images
+app.use('/uploads', express.static('uploads'));
 
 // Test route
 app.get('/', (req, res) => {
