@@ -1,11 +1,12 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { getAllProducts, addProduct, upload } = require('../controllers/productController');
+const { getAllProducts, addProduct } = require("../controllers/productController");
+const uploadAnyImage = require("../middleware/uploadMiddleware");
 
-// ✅ GET all products
-router.get('/', getAllProducts);
+// GET all products
+router.get("/", getAllProducts);
 
-// ✅ POST new product with image
-router.post('/', upload.single('image'), addProduct);
+// POST product with any image field
+router.post("/", uploadAnyImage(), addProduct);
 
 module.exports = router;

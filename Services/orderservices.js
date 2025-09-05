@@ -1,15 +1,17 @@
 const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
+const logger = require('../utils/logger'); // ✅ logger import
 
 // ✅ Create Order
-const createOrder = async (payload) => {
+const createOrder = async ({ userId }) => {
   try {
-    console.log("Creating order")
-    const cart = await Cart.findOne({ user: payload.userId }).populate('items.product');
+    logger.info("Creating order for user", { userId });
 
-    console.log("cart:",cart)
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+
     if (!cart || cart.items.length === 0) {
-      return { success: false, message: 'Cart is empty' };
+      logger.warn("Cart is empty for order", { userId });
+      return { success: false, message: 'Cart is empty', statusCode: 400 };
     }
 
     const totalAmount = cart.items.reduce((sum, item) => {
@@ -17,36 +19,36 @@ const createOrder = async (payload) => {
     }, 0);
 
     const order = new Order({
-      user: payload.userId, 
+      user: userId,
       items: cart.items,
       totalAmount
     });
 
     await order.save();
 
-    // Clear cart after order placed
+    // ✅ Clear cart after order placed
     cart.items = [];
     await cart.save();
 
-    return {
-      success: true,
-      message: 'Order placed successfully',
-      order
-    };
+    logger.info("Order placed successfully", { orderId: order._id, userId });
+    return { success: true, message: 'Order placed successfully', data: order, statusCode: 201 };
 
   } catch (error) {
-    console.log("Error",error)
-    return { success: false, message: error.message || 'Server error' }; // ✅ Better error handling
+    logger.error("OrderService error", { error: error.message });
+    return { success: false, message: error.message || 'Server error', statusCode: 500 };
   }
 };
 
 // ✅ Get Orders for User
-const getUserOrders = async (payload) => {
+const getUserOrders = async ({ userId }) => {
   try {
-    const orders = await Order.find({ user: payload.userId }).populate('items.product');
-    return { success: true, orders };
+    logger.info("Fetching orders for user", { userId });
+    const orders = await Order.find({ user: userId }).populate('items.product');
+
+    return { success: true, message: 'Orders fetched successfully', data: orders, statusCode: 200 };
   } catch (error) {
-    return { success: false, message: error.message || 'Server error' };
+    logger.error("OrderService error", { error: error.message });
+    return { success: false, message: error.message || 'Server error', statusCode: 500 };
   }
 };
 
