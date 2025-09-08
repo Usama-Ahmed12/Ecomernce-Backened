@@ -27,5 +27,9 @@ const loginSchema = Joi.object({
     "string.empty": "Password is required"
   })
 });
+// ✅ Refresh Token Schema
+const refreshTokenSchema = Joi.object({
+  token: Joi.string().required()
+});
 
-module.exports = { registerSchema, loginSchema };
+module.exports = { registerSchema, loginSchema, refreshTokenSchema };
