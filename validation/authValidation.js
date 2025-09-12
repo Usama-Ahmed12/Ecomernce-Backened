@@ -14,6 +14,9 @@ const registerSchema = Joi.object({
   password: Joi.string().min(6).required().messages({
     "string.empty": "Password is required",
     "string.min": "Password must be at least 6 characters long"
+  }),
+  role: Joi.string().valid("user", "admin").optional().messages({   // ✅ role allow
+    "any.only": "Role must be either 'user' or 'admin'"
   })
 });
 
@@ -27,6 +30,7 @@ const loginSchema = Joi.object({
     "string.empty": "Password is required"
   })
 });
+
 // ✅ Refresh Token Schema
 const refreshTokenSchema = Joi.object({
   token: Joi.string().required()

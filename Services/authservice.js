@@ -1,50 +1,48 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const logger = require('../utils/logger');   // logger import
+const logger = require('../utils/logger');
 
 // ✅ Helper function to generate tokens
 const generateTokens = (userId) => {
-  // Access Token (short expiry)
   const accessToken = jwt.sign(
     { userId },
     process.env.JWT_SECRET,
-    { expiresIn: '15m' }   // short expiry
+    { expiresIn: '15m' }
   );
 
-  // Refresh Token (long expiry)
   const refreshToken = jwt.sign(
     { userId },
     process.env.JWT_REFRESH_SECRET,
-    { expiresIn: '7d' }    // long expiry
+    { expiresIn: '7d' }
   );
 
   return { accessToken, refreshToken };
 };
 
-// ✅ Register User
-const registerUser = async ({ name, email, password }) => {
+// ✅ Register User (with optional role)
+const registerUser = async ({ name, email, password, role }) => {
   try {
-    logger.info(" Checking if user exists", { email });
+    logger.info("Checking if user exists", { email });
 
-    // Check existing
     const userExists = await User.findOne({ email });
     if (userExists) {
-      logger.warn(" User already exists", { email });
+      logger.warn("User already exists", { email });
       return { success: false, message: "User already exists" };
     }
 
-    // Hash password
-    logger.info(" Hashing password", { email });
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
-    const user = await User.create({ name, email, password: hashedPassword });
-    logger.info(" User created successfully", { userId: user._id, email });
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || "user"   // ✅ agar role na bheja jaye to user banega
+    });
 
-    // Generate tokens
+    logger.info("User created successfully", { userId: user._id, email });
+
     const { accessToken, refreshToken } = generateTokens(user._id);
-    logger.info(" Tokens generated for user", { userId: user._id });
 
     return {
       success: true,
@@ -53,7 +51,7 @@ const registerUser = async ({ name, email, password }) => {
       refreshToken
     };
   } catch (error) {
-    logger.error(" Register Service Error", { error: error.message, stack: error.stack });
+    logger.error("Register Service Error", { error: error.message, stack: error.stack });
     return { success: false, message: error.message };
   }
 };
@@ -61,24 +59,22 @@ const registerUser = async ({ name, email, password }) => {
 // ✅ Login User
 const loginUser = async ({ email, password }) => {
   try {
-    logger.info(" Login attempt", { email });
+    logger.info("Login attempt", { email });
 
     const user = await User.findOne({ email });
     if (!user) {
-      logger.warn(" Login failed: user not found", { email });
+      logger.warn("Login failed: user not found", { email });
       return { success: false, message: "Invalid credentials" };
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      logger.warn(" Login failed: wrong password", { email });
+      logger.warn("Login failed: wrong password", { email });
       return { success: false, message: "Invalid credentials" };
     }
 
-    // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user._id);
-    logger.info(" Login successful", { userId: user._id, email });
+    logger.info("Login successful", { userId: user._id, email });
 
     return {
       success: true,
@@ -87,7 +83,7 @@ const loginUser = async ({ email, password }) => {
       refreshToken
     };
   } catch (error) {
-    logger.error(" Login Service Error", { error: error.message, stack: error.stack });
+    logger.error("Login Service Error", { error: error.message, stack: error.stack });
     return { success: false, message: error.message };
   }
 };
@@ -95,7 +91,6 @@ const loginUser = async ({ email, password }) => {
 // ✅ Refresh Access Token
 const refreshAccessToken = (payload) => {
   try {
-
     const decoded = jwt.verify(payload.token, process.env.JWT_REFRESH_SECRET);
 
     const accessToken = jwt.sign(
@@ -104,7 +99,7 @@ const refreshAccessToken = (payload) => {
       { expiresIn: '15m' }
     );
 
-    logger.info(" New Access Token generated", { userId: decoded.userId });
+    logger.info("New Access Token generated", { userId: decoded.userId });
 
     return {
       success: true,
@@ -112,7 +107,7 @@ const refreshAccessToken = (payload) => {
       accessToken
     };
   } catch (error) {
-    logger.warn(" Invalid refresh token", { error: error.message });
+    logger.warn("Invalid refresh token", { error: error.message });
     return { success: false, message: "Invalid or expired refresh token" };
   }
 };

@@ -1,12 +1,13 @@
+// routes/cartRoutes.js
 const express = require('express');
 const router = express.Router();
-const { auth } = require('../middleware/authMiddleware');
+const { authenticate } = require('../middleware/authMiddleware');
 const { addToCart, getCart } = require('../controllers/cartController');
 
-// ✅ Add product to cart
-router.post('/add', auth, addToCart);
+// ✅ Add product to cart (protected route)
+router.post('/add', authenticate, addToCart);
 
-// ✅ Get user cart
-router.get('/', auth, getCart);
+// ✅ Get user cart (protected route)
+router.get('/', authenticate, getCart);
 
 module.exports = router;
