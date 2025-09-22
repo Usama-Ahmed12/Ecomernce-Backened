@@ -31,16 +31,19 @@ const seedAdmin = async () => {
     const hashedPassword = await bcrypt.hash(adminPass, 10);
 
     admin = new User({
-      name: "Admin",
+      firstName: "Super",
+      lastName: "Admin",
+      phoneNumber: "0000000000",   // dummy number rakh lo
+      name: "Admin",               // agar tumhare schema me `name` field bhi hai to ye rehne do
       email: adminEmail,
       password: hashedPassword,
       role: "admin",
     });
 
     await admin.save();
-    logger.info(" Default admin created", { email: adminEmail });
+    logger.info(" ✅ Default admin created", { email: adminEmail });
   } catch (error) {
-    logger.error(" Error seeding admin", { error: error.message });
+    logger.error(" ❌ Error seeding admin", { error: error.message });
   }
 };
 
