@@ -1,21 +1,23 @@
 // routes/userRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../middleware/authMiddleware');
-const { registerUser, loginUser } = require('../controllers/authController'); 
+const { authenticate } = require("../middleware/authMiddleware");
+const { registerUser, loginUser } = require("../controllers/authController");
+const { getUserProfile, deleteUser } = require("../controllers/userController");
 
 // ✅ Register route
-router.post('/register', registerUser);
+router.post("/register", registerUser);
 
 // ✅ Login route
-router.post('/login', loginUser);
+router.post("/login", loginUser);
 
-// ✅ Protected Route - sirf logged in user ke liye
-router.get('/profile', authenticate, (req, res) => {
-  res.json({
-    message: 'Welcome to your profile!',
-    user: req.user,
-  });
-});
+// ✅ Profile route (Protected)
+router.get("/profile", authenticate, getUserProfile);
+
+// ✅ User khud apna account delete kare
+router.delete("/delete", authenticate, deleteUser);
+
+// ✅ Admin kisi bhi user ko delete kare (id ke sath)
+router.delete("/delete/:id", authenticate, deleteUser);
 
 module.exports = router;

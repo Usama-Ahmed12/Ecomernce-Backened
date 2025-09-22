@@ -21,7 +21,7 @@ const generateTokens = (userId) => {
 };
 
 // ✅ Register User (with optional role)
-const registerUser = async ({ name, email, password, role }) => {
+const registerUser = async ({ firstName, lastName, phoneNumber, email, password, address, role }) => {
   try {
     logger.info("Checking if user exists", { email });
 
@@ -34,9 +34,12 @@ const registerUser = async ({ name, email, password, role }) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
+      firstName,
+      lastName,
+      phoneNumber,
       email,
       password: hashedPassword,
+      address,
       role: role || "user"   // ✅ agar role na bheja jaye to user banega
     });
 
