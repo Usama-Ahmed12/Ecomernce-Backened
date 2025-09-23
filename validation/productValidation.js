@@ -25,12 +25,19 @@ const createProductSchema = Joi.object({
     "string.empty": "Category is required",
     "any.required": "Category is required",
   }),
-
-  stock: Joi.number().integer().min(0).required().messages({
-    "number.base": "Stock must be a number",
-    "number.min": "Stock cannot be negative",
-    "any.required": "Stock is required",
-  }),
+  
+  // ✅ Variants validation
+  variants: Joi.array().items(
+    Joi.object({
+      color: Joi.string().required().messages({
+        "string.empty": "Color is required",
+      }),
+      stock: Joi.number().integer().min(0).required().messages({
+        "number.base": "Stock must be a number",
+        "any.required": "Stock is required for variant",
+      }),
+    })
+  ).optional(),
 
   // ✅ optional (kyunki upload ke through bhi image aa sakti hai)
   image: Joi.string().optional(),
