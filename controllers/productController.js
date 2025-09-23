@@ -1,17 +1,19 @@
-const productService = require('../Services/productservices');
-const { getImageUrl } = require('../utils/imageHelper');
-const { createProductSchema } = require('../validation/productValidation');
-const logger = require('../utils/logger');
+const productService = require("../Services/productservices");
+const { getImageUrl } = require("../utils/imageHelper");
+const { createProductSchema } = require("../validation/productValidation");
+const logger = require("../utils/logger");
 
-// ✅ Get all products
+// ============================
+// ✅ Get All Products
+// ============================
 exports.getAllProducts = async (req, res) => {
   try {
-    logger.info(" GetAllProducts API Request");
+    logger.info("GetAllProducts API Request");
 
     const resp = await productService.getAllProducts();
 
     if (!resp.success) {
-      logger.warn(" No products found");
+      logger.warn("No products found");
       return res.status(404).json({
         success: false,
         message: resp.message || "No products found",
@@ -19,19 +21,20 @@ exports.getAllProducts = async (req, res) => {
       });
     }
 
-    const products = resp.data.map(p => ({
+    // Image path convert karke bhejna
+    const products = resp.data.map((p) => ({
       ...p._doc,
       image: getImageUrl(req, p.image),
     }));
 
-    logger.info(" Products fetched successfully", { count: products.length });
+    logger.info("Products fetched successfully", { count: products.length });
     return res.status(200).json({
       success: true,
       message: "Products fetched successfully",
       data: products,
     });
   } catch (error) {
-    logger.error(" ProductController Error (GetAll)", { error: error.message });
+    logger.error("ProductController Error (GetAll)", { error: error.message });
     return res.status(500).json({
       success: false,
       message: "Server error while fetching products",
@@ -40,13 +43,16 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-// ✅ Add new product with validation
+// ============================
+// ✅ Add New Product
+// ============================
 exports.addProduct = async (req, res) => {
   try {
-    logger.info(" AddProduct API Request", { body: req.body });
+    logger.info("AddProduct API Request", { body: req.body });
 
     const productData = req.body;
 
+    // Agar image upload hui ho
     if (req.file) {
       productData.image = req.file.filename;
     }
@@ -54,7 +60,9 @@ exports.addProduct = async (req, res) => {
     // === Validate product data ===
     const { error } = createProductSchema.validate(productData);
     if (error) {
-      logger.warn(" Product validation failed", { error: error.details[0].message });
+      logger.warn("Product validation failed", {
+        error: error.details[0].message,
+      });
       return res.status(400).json({
         success: false,
         message: error.details[0].message,
@@ -62,10 +70,11 @@ exports.addProduct = async (req, res) => {
       });
     }
 
+    // Service call
     const resp = await productService.addProduct(productData);
 
     if (!resp.success) {
-      logger.warn(" Product service failed", { message: resp.message });
+      logger.warn("Product service failed", { message: resp.message });
       return res.status(400).json({
         success: false,
         message: resp.message || "Failed to add product",
@@ -85,7 +94,7 @@ exports.addProduct = async (req, res) => {
       data: product,
     });
   } catch (error) {
-    logger.error("❌ ProductController Error (Add)", { error: error.message });
+    logger.error("ProductController Error (Add)", { error: error.message });
     return res.status(500).json({
       success: false,
       message: "Server error while adding product",
