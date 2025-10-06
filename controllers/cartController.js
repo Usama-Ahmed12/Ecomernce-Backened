@@ -1,8 +1,8 @@
 const cartService = require("../Services/cartservice");
 const { addToCartSchema } = require("../validation/cartValidation");
-const logger = require("../utils/logger");  // ✅ import logger
+const logger = require("../utils/logger");  //  import logger
 
-// ✅ Add to cart
+//  Add to cart
 const addToCart = async (req, res) => {
   try {
     logger.info(" Add to Cart API Request", { body: req.body, userId: req.user?.userId });
@@ -19,15 +19,15 @@ const addToCart = async (req, res) => {
     }
 
     const resp = await cartService.addToCart({
-      userId: req.user.userId, // ✅ from JWT
+      userId: req.user.userId, //  from JWT
       productId: req.body.productId,
       quantity: req.body.quantity,
     });
 
     if (!resp.success) {
-      logger.warn("⚠️ Add to Cart Service Failed", { message: resp.message });
+      logger.warn(" Add to Cart Service Failed", { message: resp.message });
     } else {
-      logger.info("✅ Item Added to Cart", { userId: req.user.userId, productId: req.body.productId });
+      logger.info(" Item Added to Cart", { userId: req.user.userId, productId: req.body.productId });
     }
 
     return res.status(resp.statusCode || 200).json({
@@ -45,7 +45,7 @@ const addToCart = async (req, res) => {
   }
 };
 
-// ✅ Get user's cart
+//  Get user's cart
 const getCart = async (req, res) => {
   try {
     logger.info(" Get Cart API Request", { userId: req.user?.userId });

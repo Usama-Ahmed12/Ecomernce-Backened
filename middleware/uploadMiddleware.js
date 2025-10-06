@@ -1,6 +1,6 @@
 const multer = require("multer");
 
-// ✅ Storage setup
+//  Storage setup
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads"); // images uploads folder me save hongi
@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
   },
 });
 
-// ✅ File filter: sirf images allow
+//  File filter: sirf images allow
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
@@ -19,10 +19,10 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// ✅ Upload instance
+//  Upload instance
 const upload = multer({ storage, fileFilter });
 
-// ✅ Flexible upload middleware (koi bhi field name chale)
+//  Flexible upload middleware (koi bhi field name chale)
 function uploadAnyImage() {
   return (req, res, next) => {
     // upload.any() → koi bhi field name se file accept karega
