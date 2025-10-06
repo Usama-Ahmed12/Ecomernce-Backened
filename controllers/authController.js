@@ -2,7 +2,7 @@ const authService = require('../Services/authservice');
 const { registerSchema, loginSchema, refreshTokenSchema } = require('../validation/authValidation');
 const logger = require('../utils/logger');
 
-// ✅ Register User
+//  Register User
 const registerUser = async (req, res) => {
   try {
     logger.info(" Register API Request", { body: req.body });
@@ -50,7 +50,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// ✅ Login User
+//  Login User
 const loginUser = async (req, res) => {
   try {
     logger.info(" Login API Request", { body: req.body });
@@ -98,7 +98,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-// ✅ Refresh Token
+//  Refresh Token
 const refreshToken = async (req, res) => {
   try {
     logger.info(" Refresh Token API Request", { body: req.body });
