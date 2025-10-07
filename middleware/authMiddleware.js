@@ -15,10 +15,10 @@ const authenticate = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ Fix: userId use karna hai, id nahi
-    req.user = { id: decoded.userId };
-    logger.info("Auth success - Token verified", { userId: decoded.userId });
+    // ✅ Set userId properly
+    req.user = { userId: decoded.userId };
 
+    logger.info("Auth success - Token verified", { userId: decoded.userId });
     next();
   } catch (error) {
     logger.error("Auth error", { error: error.message });
@@ -30,7 +30,8 @@ const authenticate = async (req, res, next) => {
 const authorize = (roles = []) => {
   return async (req, res, next) => {
     try {
-      const user = await User.findById(req.user.id);
+      // ✅ Fix: use userId (not id)
+      const user = await User.findById(req.user.userId);
 
       if (!user) {
         logger.warn("Authorize failed - User not found");
@@ -39,7 +40,7 @@ const authorize = (roles = []) => {
 
       if (!roles.includes(user.role)) {
         logger.warn("Authorize failed - Role not allowed", { role: user.role });
-        return res.status(403).json({ message: "Access denied - Only admin can add product" }); // ✅ updated line
+        return res.status(403).json({ message: "Access denied - Only admin can add product" });
       }
 
       logger.info("Authorize success", { role: user.role });
