@@ -34,8 +34,13 @@ const createOrder = async ({ userId }) => {
     return { success: true, message: 'Order placed successfully', data: order, statusCode: 201 };
 
   } catch (error) {
-    logger.error("OrderService error", { error: error.message });
-    return { success: false, message: error.message || 'Server error', statusCode: 500 };
+    logger.error("OrderService error", { error });
+    return { 
+      success: false, 
+      message: error.message || 'Server error', 
+      details: error,   // ✅ full error bhej diya
+      statusCode: 500 
+    };
   }
 };
 
@@ -47,9 +52,46 @@ const getUserOrders = async ({ userId }) => {
 
     return { success: true, message: 'Orders fetched successfully', data: orders, statusCode: 200 };
   } catch (error) {
-    logger.error("OrderService error", { error: error.message });
-    return { success: false, message: error.message || 'Server error', statusCode: 500 };
+    logger.error("OrderService error", { error });
+    return { 
+      success: false, 
+      message: error.message || 'Server error', 
+      details: error,   // ✅ full error bhej diya
+      statusCode: 500 
+    };
   }
 };
 
-module.exports = { createOrder, getUserOrders };
+// ✅ Mark Order as Paid
+const markOrderPaid = async ({ userId, orderId }) => {
+  try {
+    logger.info("Marking order as paid", { userId, orderId });
+
+    const order = await Order.findOne({ _id: orderId, user: userId });
+
+    if (!order) {
+      logger.warn("Order not found", { userId, orderId });
+      return { success: false, message: "Order not found", statusCode: 404 };
+    }
+
+    if (order.status === "Paid") {
+      return { success: false, message: "Order is already paid", statusCode: 400 };
+    }
+
+    order.status = "Paid";
+    await order.save();
+
+    logger.info("Order marked as paid", { orderId });
+    return { success: true, message: "Order payment successful", data: order, statusCode: 200 };
+  } catch (error) {
+    logger.error("MarkOrderPaid error", { error });
+    return { 
+      success: false, 
+      message: error.message || "Server error", 
+      details: error,   // ✅ full error bhej diya
+      statusCode: 500 
+    };
+  }
+};
+
+module.exports = { createOrder, getUserOrders, markOrderPaid };

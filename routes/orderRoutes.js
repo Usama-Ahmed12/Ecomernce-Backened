@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { createOrder, getUserOrders } = require('../controllers/orderController');
+const { createOrder, getUserOrders, markOrderPaid } = require('../controllers/orderController');
 const { authenticate } = require('../middleware/authMiddleware');
 
-// ✅ Protected route to create order
+// ✅ Create order
 router.post('/create', authenticate, createOrder);
 
-// ✅ Get orders for logged-in user
+// ✅ Get all orders of logged-in user
 router.get('/my-orders', authenticate, getUserOrders);
+
+// ✅ Mark order as Paid
+router.put('/:id/pay', authenticate, markOrderPaid);
 
 module.exports = router;

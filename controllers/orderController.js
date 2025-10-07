@@ -60,4 +60,29 @@ const getUserOrders = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, getUserOrders };
+// ✅ Mark Order as Paid
+const markOrderPaid = async (req, res) => {
+  const userId = req.user?.userId;
+  const orderId = req.params.id; // ✅ params se le rahe ho
+
+  try {
+    logger.info("MarkOrderPaid API Request", { userId, orderId });
+
+    const resp = await orderService.markOrderPaid({ userId, orderId });
+
+    return res.status(resp.statusCode).json({
+      success: resp.success,
+      message: resp.message,
+      data: resp.data || null,
+    });
+  } catch (error) {
+    logger.error("MarkOrderPaid Controller Error", { error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: "Server error while updating order payment",
+      data: null,
+    });
+  }
+};
+
+module.exports = { createOrder, getUserOrders, markOrderPaid };
