@@ -34,7 +34,6 @@ const seedAdmin = async () => {
       firstName: "Super",
       lastName: "Admin",
       phoneNumber: "0000000000",   // dummy number rakh lo
-      name: "Admin",               // agar tumhare schema me `name` field bhi hai to ye rehne do
       email: adminEmail,
       password: hashedPassword,
       role: "admin",

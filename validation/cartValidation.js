@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-// ✅ Validation schema for Add to Cart
+//  Validation schema for Add to Cart
 const addToCartSchema = Joi.object({
   productId: Joi.string().required().messages({
     "any.required": "Product ID is required",

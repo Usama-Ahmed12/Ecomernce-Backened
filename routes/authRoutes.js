@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, refreshToken } = require('../controllers/authController');
+const { registerUser, verifyEmail, loginUser, refreshToken } = require('../controllers/authController');
 
-// ✅ Register new user
+// POST /api/auth/register
 router.post('/register', registerUser);
 
-// ✅ Login user
+// GET  /api/auth/verify/:token
+router.get('/verify/:token', verifyEmail);
+
+// POST /api/auth/login
 router.post('/login', loginUser);
 
-// ✅ Refresh token
+// POST /api/auth/refresh
 router.post('/refresh', refreshToken);
 
 module.exports = router;
+

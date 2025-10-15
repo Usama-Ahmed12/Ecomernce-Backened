@@ -2,14 +2,16 @@ const orderService = require("../Services/orderservices");
 const { createOrderSchema } = require("../validation/orderValidation");
 const logger = require("../utils/logger");
 
-// ✅ Create new order
+//  Create new order
 const createOrder = async (req, res) => {
-  const userId = req.user?.userId;
+  const userId = req.user?.userId?.toString(); // Convert ObjectId to string
+  const userEmail = req.user?.email;
+  const userName = req.user?.name || req.user?.firstName;
 
   try {
-    logger.info("CreateOrder API Request", { userId });
+    logger.info("CreateOrder API Request", { userId, userEmail });
 
-    // === Validate request data ===
+    //  Validate request data 
     const { error } = createOrderSchema.validate({ userId });
     if (error) {
       logger.warn("Order validation failed", { error: error.details[0].message });
@@ -20,7 +22,8 @@ const createOrder = async (req, res) => {
       });
     }
 
-    const resp = await orderService.createOrder({ userId });
+    // Pass email + name to service
+    const resp = await orderService.createOrder({ userId, userEmail, userName });
 
     return res.status(resp.statusCode).json({
       success: resp.success,
@@ -37,9 +40,9 @@ const createOrder = async (req, res) => {
   }
 };
 
-// ✅ Get all orders for logged-in user
+//  Get all orders for logged-in user
 const getUserOrders = async (req, res) => {
-  const userId = req.user?.userId;
+  const userId = req.user?.userId?.toString();
 
   try {
     logger.info("GetUserOrders API Request", { userId });
@@ -60,15 +63,24 @@ const getUserOrders = async (req, res) => {
   }
 };
 
-// ✅ Mark Order as Paid
+//  Mark Order as Paid
 const markOrderPaid = async (req, res) => {
-  const userId = req.user?.userId;
-  const orderId = req.params.id; // ✅ params se le rahe ho
+  const userId = req.user?.userId?.toString();
+  const userEmail = req.user?.email;
+  const userName = req.user?.name || req.user?.firstName;
+  const orderId = req.params.id;
+
+  if (!userEmail || !userName) {
+    return res.status(400).json({
+      success: false,
+      message: "User email or name missing in request",
+    });
+  }
 
   try {
     logger.info("MarkOrderPaid API Request", { userId, orderId });
 
-    const resp = await orderService.markOrderPaid({ userId, orderId });
+    const resp = await orderService.markOrderPaid({ userId, orderId, userEmail, userName });
 
     return res.status(resp.statusCode).json({
       success: resp.success,
