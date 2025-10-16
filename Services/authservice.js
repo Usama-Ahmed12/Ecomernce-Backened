@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto'); // ✅ for verification token
+const crypto = require('crypto'); //  for verification token
 const logger = require('../utils/logger');
 const sendEmail = require('../utils/sendEmail'); // Email utility
 
@@ -12,7 +12,7 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
-// ✅ Register User (with backend verification link)
+//  Register User (with backend verification link)
 const registerUser = async ({ firstName, lastName, phoneNumber, email, password, address, role }) => {
   try {
     logger.info("Checking if user exists", { email });
@@ -24,7 +24,7 @@ const registerUser = async ({ firstName, lastName, phoneNumber, email, password,
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Generate verification token
+    //  Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenExpiry = Date.now() + 60 * 60 * 1000; // 1 hour expiry
 
@@ -42,7 +42,7 @@ const registerUser = async ({ firstName, lastName, phoneNumber, email, password,
 
     logger.info("User created successfully", { userId: user._id, email });
 
-    // ✅ Backend-friendly verification link
+    //  Backend-friendly verification link
     const verificationLink = `${process.env.BASE_URL}/api/auth/verify/${verificationToken}`;
 
     const html = `
@@ -69,21 +69,21 @@ const registerUser = async ({ firstName, lastName, phoneNumber, email, password,
         subject: "Verify Your Email - Mahas Creation",
         html,
       });
-      logger.info("✅ Verification email sent to user", { email: user.email });
+      logger.info(" Verification email sent to user", { email: user.email });
     } catch (err) {
-      logger.warn("❌ Failed to send verification email", { error: err.message });
+      logger.warn(" Failed to send verification email", { error: err.message });
     }
 
-    // ✅ Notify Admin
+    //  Notify Admin
     try {
       await sendEmail({
         to: process.env.ADMIN_EMAIL,
         subject: "🧍 New User Registered",
         text: `A new user has signed up:\n\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phoneNumber}`,
       });
-      logger.info("✅ Admin notified of new registration", { email });
+      logger.info(" Admin notified of new registration", { email });
     } catch (err) {
-      logger.warn("❌ Failed to notify admin", { error: err.message });
+      logger.warn(" Failed to notify admin", { error: err.message });
     }
 
     return { success: true, message: "Verification email sent. Please verify your account." };
@@ -94,7 +94,7 @@ const registerUser = async ({ firstName, lastName, phoneNumber, email, password,
   }
 };
 
-// ✅ Verify Email
+//  Verify Email
 const verifyEmail = async (token) => {
   try {
     const user = await User.findOne({
@@ -106,12 +106,15 @@ const verifyEmail = async (token) => {
       return { success: false, message: "Invalid or expired verification token" };
     }
 
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpiry = undefined;
-    await user.save();
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: { isVerified: true },
+        $unset: { verificationToken: "", verificationTokenExpiry: "" },
+      }
+    );
 
-    logger.info("✅ User email verified", { email: user.email });
+    logger.info(" User email verified", { email: user.email });
     return { success: true, message: "Email verified successfully" };
   } catch (error) {
     logger.error("Verify Email Error", { error: error.message });
@@ -119,7 +122,8 @@ const verifyEmail = async (token) => {
   }
 };
 
-// ✅ Login User (with verification check)
+
+//  Login User (with verification check)
 const loginUser = async ({ email, password }) => {
   try {
     logger.info("Login attempt", { email });
