@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto'); //  for verification token
+const crypto = require('crypto'); // for verification token
 const logger = require('../utils/logger');
 const sendEmail = require('../utils/sendEmail'); // Email utility
 
@@ -15,7 +15,7 @@ const generateTokens = (userId) => {
 //  Register User (with backend verification link)
 const registerUser = async ({ firstName, lastName, phoneNumber, email, password, address, role }) => {
   try {
-    logger.info("Checking if user exists", { email });
+    logger.info("Checking if user exists", { email }); 
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -26,7 +26,7 @@ const registerUser = async ({ firstName, lastName, phoneNumber, email, password,
 
     //  Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationTokenExpiry = Date.now() + 60 * 60 * 1000; // 1 hour expiry
+    const verificationTokenExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours expiry
 
     const user = await User.create({
       firstName,
@@ -56,7 +56,7 @@ const registerUser = async ({ firstName, lastName, phoneNumber, email, password,
                     border-radius:5px;text-decoration:none;margin-top:10px;font-weight:bold;">
              Verify My Email
           </a>
-          <p style="font-size:13px; color:#777; margin-top:20px;">This link will expire in 1 hour.</p>
+          <p style="font-size:13px; color:#777; margin-top:20px;">This link will expire in 24 hours.</p>
           <hr style="margin:20px 0; border:none; border-top:1px solid #eeeeee;">
           <p style="font-size:12px; color:#999;">Ignore this email if you didn't sign up.</p>
         </div>
@@ -69,9 +69,9 @@ const registerUser = async ({ firstName, lastName, phoneNumber, email, password,
         subject: "Verify Your Email - Mahas Creation",
         html,
       });
-      logger.info(" Verification email sent to user", { email: user.email });
+      logger.info("Verification email sent to user", { email: user.email });
     } catch (err) {
-      logger.warn(" Failed to send verification email", { error: err.message });
+      logger.warn("Failed to send verification email", { error: err.message });
     }
 
     //  Notify Admin
@@ -81,9 +81,9 @@ const registerUser = async ({ firstName, lastName, phoneNumber, email, password,
         subject: "🧍 New User Registered",
         text: `A new user has signed up:\n\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phoneNumber}`,
       });
-      logger.info(" Admin notified of new registration", { email });
+      logger.info("Admin notified of new registration", { email });
     } catch (err) {
-      logger.warn(" Failed to notify admin", { error: err.message });
+      logger.warn("Failed to notify admin", { error: err.message });
     }
 
     return { success: true, message: "Verification email sent. Please verify your account." };
@@ -114,7 +114,7 @@ const verifyEmail = async (token) => {
       }
     );
 
-    logger.info(" User email verified", { email: user.email });
+    logger.info("User email verified", { email: user.email });
     return { success: true, message: "Email verified successfully" };
   } catch (error) {
     logger.error("Verify Email Error", { error: error.message });
@@ -122,6 +122,54 @@ const verifyEmail = async (token) => {
   }
 };
 
+// Resend Verification Email
+const resendVerificationEmail = async (email) => {
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return { success: false, message: "User not found" };
+    if (user.isVerified) return { success: false, message: "User already verified" };
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpiry = Date.now() + 24*60*60*1000; // 24 hours
+
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { verificationToken, verificationTokenExpiry } }
+    );
+
+    const verificationLink = `${process.env.BASE_URL}/api/auth/verify/${verificationToken}`;
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; background-color: #f6f6f6ff; padding: 30px;">
+        <div style="max-width: 600px; background: white; margin: auto; border-radius: 10px; padding: 20px; text-align: center;">
+          <h2 style="color:#222;">Welcome to <span style="color:#E91E63;">Mahas Creation</span> 🎉</h2>
+          <p style="font-size:16px; color:#555;">Hi <b>${user.firstName}</b>,</p>
+          <p style="font-size:15px; color:#555;">Please verify your email by clicking the button below:</p>
+          <a href="${verificationLink}" 
+             style="display:inline-block;background-color:#E91E63;color:white;padding:12px 25px;
+                    border-radius:5px;text-decoration:none;margin-top:10px;font-weight:bold;">
+             Verify My Email
+          </a>
+          <p style="font-size:13px; color:#777; margin-top:20px;">This link will expire in 24 hours.</p>
+          <hr style="margin:20px 0; border:none; border-top:1px solid #eeeeee;">
+          <p style="font-size:12px; color:#999;">Ignore this email if you didn't sign up.</p>
+        </div>
+      </div>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Verify Your Email - Mahas Creation",
+      html,
+    });
+
+    return { success: true, message: "Verification email resent successfully" };
+
+  } catch (error) {
+    logger.error("Resend Verification Email Error", { error: error.message });
+    return { success: false, message: error.message };
+  }
+};
 
 //  Login User (with verification check)
 const loginUser = async ({ email, password }) => {
@@ -156,4 +204,4 @@ const refreshAccessToken = (payload) => {
   }
 };
 
-module.exports = { registerUser, verifyEmail, loginUser, refreshAccessToken };
+module.exports = { registerUser, verifyEmail, loginUser, refreshAccessToken, resendVerificationEmail };

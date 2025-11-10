@@ -27,10 +27,12 @@ const getUserProfileService = async (userId) => {
   }
 };
 
-//  Delete User Service
-const deleteUserService = async (userId) => {
+//  Delete User Service (by ID for normal users, by Email for admin)
+const deleteUserService = async (identifier, isAdmin = false) => {
   try {
-    const user = await User.findByIdAndDelete(userId);
+    const user = isAdmin
+      ? await User.findOneAndDelete({ email: identifier })
+      : await User.findOneAndDelete({ email: identifier }); // both delete by email
 
     if (!user) {
       return { success: false, message: "User not found" };
@@ -43,7 +45,7 @@ const deleteUserService = async (userId) => {
   }
 };
 
-module.exports = { 
+module.exports = {
   getUserProfileService,
-  deleteUserService
+  deleteUserService,
 };
