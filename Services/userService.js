@@ -1,7 +1,7 @@
 const User = require("../models/user");
 const logger = require("../utils/logger");
 
-// ✅ Get User Profile Service
+//  Get User Profile Service
 const getUserProfileService = async (userId) => {
   try {
     const user = await User.findById(userId).select("-password");
@@ -27,7 +27,7 @@ const getUserProfileService = async (userId) => {
   }
 };
 
-// ✅ Delete User Service
+//  Delete User Service
 const deleteUserService = async (userId) => {
   try {
     const user = await User.findByIdAndDelete(userId);

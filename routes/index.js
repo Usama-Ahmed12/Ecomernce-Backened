@@ -14,5 +14,7 @@ router.use('/users',require('./userRoutes'));
 router.use('/products',require('./productRoutes'));
 router.use('/cart',require('./cartRoutes'));
 router.use('/orders',require('./orderRoutes'));
+router.use('/email', require('./emailRoutes'));
+
 
 module.exports = router;

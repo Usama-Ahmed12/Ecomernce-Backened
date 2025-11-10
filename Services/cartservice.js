@@ -1,8 +1,8 @@
 const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
-const logger = require("../utils/logger"); // ✅ import logger
+const logger = require("../utils/logger"); //  import logger
 
-// ✅ Add to cart logic
+//  Add to cart logic
 const addToCart = async ({ userId, productId, quantity }) => {
   try {
     logger.info("🛒 CartService: Add to Cart called", { userId, productId, quantity });
@@ -49,7 +49,7 @@ const addToCart = async ({ userId, productId, quantity }) => {
   }
 };
 
-// ✅ Get user's cart
+//  Get user's cart
 const getCart = async ({ userId }) => {
   try {
     logger.info(" CartService: Get Cart called", { userId });
@@ -60,7 +60,7 @@ const getCart = async ({ userId }) => {
       return { success: false, message: "Cart not found", statusCode: 404 };
     }
 
-    logger.info("✅ Cart fetched successfully", { userId, itemsCount: cart.items.length });
+    logger.info(" Cart fetched successfully", { userId, itemsCount: cart.items.length });
     return { success: true, message: "Cart fetched successfully", data: cart, statusCode: 200 };
   } catch (error) {
     logger.error(" CartService GetCart Error", { error: error.message, stack: error.stack });

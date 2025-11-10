@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const logger = require("../utils/logger");
 
-// ✅ Authenticate (token verify)
+//  Authenticate (token verify)
 const authenticate = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1]; // Bearer <token>
@@ -15,8 +15,19 @@ const authenticate = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ Set userId properly
-    req.user = { userId: decoded.userId };
+    // Fetch full user info from DB
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      logger.warn("Auth failed - User not found");
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Set full user info for controllers
+    req.user = {
+      userId: user._id,
+      email: user.email,
+      name: user.name || user.firstName
+    };
 
     logger.info("Auth success - Token verified", { userId: decoded.userId });
     next();
@@ -26,11 +37,10 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// ✅ Authorize (role check)
+//  Authorize (role check)
 const authorize = (roles = []) => {
   return async (req, res, next) => {
     try {
-      // ✅ Fix: use userId (not id)
       const user = await User.findById(req.user.userId);
 
       if (!user) {
