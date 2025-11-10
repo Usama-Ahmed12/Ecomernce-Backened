@@ -41,9 +41,17 @@ const loginSchema = Joi.object({
   })
 });
 
-//  Refresh Token Schema
+// === Refresh Token Schema ===
 const refreshTokenSchema = Joi.object({
   token: Joi.string().required()
 });
 
-module.exports = { registerSchema, loginSchema, refreshTokenSchema };
+// === Resend Verification Schema ===
+const resendVerificationSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    "string.empty": "Email is required",
+    "string.email": "Email must be a valid email"
+  })
+});
+
+module.exports = { registerSchema, loginSchema, refreshTokenSchema, resendVerificationSchema };

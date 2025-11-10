@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, verifyEmail, loginUser, refreshToken } = require('../controllers/authController');
+const { 
+  registerUser, 
+  verifyEmail, 
+  loginUser, 
+  refreshToken,
+  resendVerificationEmail //  add this
+} = require('../controllers/authController');
 
 // POST /api/auth/register
 router.post('/register', registerUser);
@@ -14,5 +20,7 @@ router.post('/login', loginUser);
 // POST /api/auth/refresh
 router.post('/refresh', refreshToken);
 
-module.exports = router;
+// POST /api/auth/resend-verification  New Route
+router.post('/resend-verification', resendVerificationEmail);
 
+module.exports = router;

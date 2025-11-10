@@ -18,6 +18,6 @@ router.get("/profile", authenticate, getUserProfile);
 router.delete("/delete", authenticate, deleteUser);
 
 // ✅ Admin kisi bhi user ko delete kare (id ke sath)
-router.delete("/delete/:id", authenticate, deleteUser);
+router.delete("/delete/:email", authenticate, deleteUser);
 
 module.exports = router;

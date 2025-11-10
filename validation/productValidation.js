@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-//  Product creation schema
+// ✅ Product creation schema
 const createProductSchema = Joi.object({
   name: Joi.string().min(3).max(100).required().messages({
     "string.base": "Product name should be a type of text",
@@ -26,31 +26,36 @@ const createProductSchema = Joi.object({
     "any.required": "Category is required",
   }),
 
-  //  Variants validation (color, stock, price, description)
-  variants: Joi.array().items(
-    Joi.object({
-      color: Joi.string().required().messages({
-        "string.empty": "Color is required",
-      }),
-      stock: Joi.number().integer().min(0).required().messages({
-        "number.base": "Stock must be a number",
-        "any.required": "Stock is required for variant",
-      }),
-      price: Joi.number().positive().precision(2).required().messages({
-        "number.base": "Variant price must be a number",
-        "number.positive": "Variant price must be positive",
-        "any.required": "Variant price is required",
-      }),
-      description: Joi.string().min(3).max(200).optional().messages({
-        "string.min": "Variant description should have at least 3 characters",
-      }),
-    })
-  ).optional(),
+  // ✅ Product-level stock (allowing stock at product level)
+  stock: Joi.number().integer().min(0).optional().messages({
+    "number.base": "Stock must be a number",
+    "number.min": "Stock cannot be negative",
+  }),
 
-  //  optional (kyunki upload ke through bhi image aa sakti hai)
+  // ✅ Variants validation
+  variants: Joi.array()
+    .items(
+      Joi.object({
+        color: Joi.string().required().messages({
+          "string.empty": "Color is required",
+        }),
+        stock: Joi.number().integer().min(0).required().messages({
+          "number.base": "Stock must be a number",
+          "any.required": "Stock is required for variant",
+        }),
+        price: Joi.number().positive().precision(2).required().messages({
+          "number.base": "Variant price must be a number",
+          "number.positive": "Variant price must be positive",
+          "any.required": "Variant price is required",
+        }),
+        description: Joi.string().min(3).max(200).optional().messages({
+          "string.min": "Variant description should have at least 3 characters",
+        }),
+      })
+    )
+    .optional(),
+
   image: Joi.string().optional(),
 });
 
-module.exports = {
-  createProductSchema,
-};
+module.exports = { createProductSchema };
