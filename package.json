@@ -25,6 +25,7 @@
     "mongoose": "^8.17.0",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.9",
+    "redis": "^5.9.0",
     "winston": "^3.17.0"
   }
 }
