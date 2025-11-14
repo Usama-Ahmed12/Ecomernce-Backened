@@ -1,7 +1,9 @@
 const orderService = require("../Services/orderservices");
 const { createOrderSchema } = require("../validation/orderValidation");
 const logger = require("../utils/logger");
-const redisClient = require("../utils/redis"); //  Redis client import
+const redisClient = require("../utils/redis");
+const STATUS_CODES = require("../utils/statusCodes"); // <-- IMPORTED
+const MESSAGES = require("../utils/messages");     // <-- IMPORTED
 
 //  Create new order
 const createOrder = async (req, res) => {
@@ -10,38 +12,48 @@ const createOrder = async (req, res) => {
   const userName = req.user?.name || req.user?.firstName;
 
   try {
-    logger.info("CreateOrder API Request", { userId, userEmail });
+    logger.info("OrderController: createOrder - API Request initiated", { userId, userEmail });
 
-    // Validate request
+    // Validate request body (assuming createOrderSchema validates userId if needed)
+    // Note: The provided createOrderSchema only validates userId. If other body fields are expected, update schema.
     const { error } = createOrderSchema.validate({ userId });
     if (error) {
-      logger.warn("Order validation failed", { error: error.details[0].message });
-      return res.status(400).json({
+      logger.warn("OrderController: createOrder - Validation failed", { error: error.details[0].message, userId });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
-        message: error.details[0].message,
-        data: null,
+        message: error.details[0].message, // Use specific validation message
+        data: MESSAGES.DATA_NULL,
       });
     }
 
-    // Create new order
+    // Create new order via service
     const resp = await orderService.createOrder({ userId, userEmail, userName });
 
-    //  Clear user's order cache (if exists)
+    if (!resp.success) {
+      logger.warn("OrderController: createOrder - Order creation failed in service", { userId, message: resp.message, statusCode: resp.statusCode });
+      return res.status(resp.statusCode || STATUS_CODES.INTERNAL_SERVER_ERROR).json({ // Use service's status code
+        success: false,
+        message: resp.message,
+        data: MESSAGES.DATA_NULL,
+      });
+    }
+
+    // Clear user's order cache (if exists) after successful creation
     const cacheKey = `orders:${userId}`;
     await redisClient.del(cacheKey);
-    logger.info(" Redis cache cleared after new order creation", { cacheKey });
+    logger.info("OrderController: createOrder - Redis cache cleared after new order creation", { cacheKey });
 
-    return res.status(resp.statusCode).json({
-      success: resp.success,
+    return res.status(resp.statusCode || STATUS_CODES.CREATED).json({ // Use service's status code, default to CREATED
+      success: true,
       message: resp.message,
-      data: resp.data || null,
+      data: resp.data,
     });
   } catch (error) {
-    logger.error("CreateOrder Controller Error", { error: error.message });
-    return res.status(500).json({
+    logger.error("OrderController: createOrder - Unexpected error", { error: error.message, stack: error.stack, userId });
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "Server error while creating order",
-      data: null,
+      message: MESSAGES.ORDER_CREATED_SERVER_ERROR, // Use specific server error message
+      data: MESSAGES.DATA_NULL,
     });
   }
 };
@@ -51,19 +63,18 @@ const getUserOrders = async (req, res) => {
   const userId = req.user?.userId?.toString();
 
   try {
-    logger.info("GetUserOrders API Request", { userId });
+    logger.info("OrderController: getUserOrders - API Request initiated", { userId });
 
-    //  Unique cache key for this user
     const cacheKey = `orders:${userId}`;
 
     // 1️ Try fetching from Redis cache
     const cachedData = await redisClient.get(cacheKey);
     if (cachedData) {
-      logger.info(" Orders fetched from Redis cache", { cacheKey });
+      logger.info("OrderController: getUserOrders - Orders fetched from Redis cache", { cacheKey });
       const parsed = JSON.parse(cachedData);
-      return res.status(200).json({
+      return res.status(STATUS_CODES.OK).json({
         success: true,
-        message: "Orders fetched successfully (from cache)",
+        message: MESSAGES.ORDERS_FETCH_SUCCESS_CACHE,
         data: parsed,
       });
     }
@@ -72,29 +83,39 @@ const getUserOrders = async (req, res) => {
     const resp = await orderService.getUserOrders({ userId });
 
     if (!resp.success) {
-      logger.warn("No orders found in DB", { userId });
-      return res.status(resp.statusCode).json({
+      logger.warn("OrderController: getUserOrders - No orders found in DB or service error", { userId, message: resp.message, statusCode: resp.statusCode });
+      // Even if no orders are found, service returns success: true with empty array.
+      // This 'if' block would primarily catch service's internal server error.
+      return res.status(resp.statusCode || STATUS_CODES.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: resp.message,
-        data: null,
+        data: MESSAGES.DATA_NULL,
       });
     }
 
     // 3️ Cache result in Redis for 5 minutes (300 sec)
-    await redisClient.setEx(cacheKey, 300, JSON.stringify(resp.data));
-    logger.info(" Orders cached in Redis", { cacheKey });
+    // Only cache if there's actual data, or cache empty array
+    if (resp.data && resp.data.length > 0) {
+      await redisClient.setEx(cacheKey, 300, JSON.stringify(resp.data));
+      logger.info("OrderController: getUserOrders - Orders cached in Redis", { cacheKey, count: resp.data.length });
+    } else {
+      // Cache empty array too, to prevent repeated DB calls for users with no orders
+      await redisClient.setEx(cacheKey, 300, JSON.stringify([]));
+      logger.info("OrderController: getUserOrders - Empty orders list cached in Redis", { cacheKey });
+    }
 
-    return res.status(200).json({
+
+    return res.status(STATUS_CODES.OK).json({
       success: true,
-      message: "Orders fetched successfully (from DB)",
+      message: MESSAGES.ORDERS_FETCH_SUCCESS_DB,
       data: resp.data,
     });
   } catch (error) {
-    logger.error("GetUserOrders Controller Error", { error: error.message });
-    return res.status(500).json({
+    logger.error("OrderController: getUserOrders - Unexpected error", { error: error.message, stack: error.stack, userId });
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "Server error while fetching orders",
-      data: null,
+      message: MESSAGES.SERVER_ERROR, // General server error message
+      data: MESSAGES.DATA_NULL,
     });
   }
 };
@@ -106,34 +127,45 @@ const markOrderPaid = async (req, res) => {
   const userName = req.user?.name || req.user?.firstName;
   const orderId = req.params.id;
 
-  if (!userEmail || !userName) {
-    return res.status(400).json({
-      success: false,
-      message: "User email or name missing in request",
-    });
-  }
-
   try {
-    logger.info("MarkOrderPaid API Request", { userId, orderId });
+    logger.info("OrderController: markOrderPaid - API Request initiated", { userId, orderId });
+
+    if (!userEmail || !userName) {
+      logger.warn("OrderController: markOrderPaid - User email or name missing from request", { userId, orderId });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: MESSAGES.USER_EMAIL_NAME_MISSING,
+        data: MESSAGES.DATA_NULL,
+      });
+    }
 
     const resp = await orderService.markOrderPaid({ userId, orderId, userEmail, userName });
 
-    //  Clear cache after payment update
+    if (!resp.success) {
+      logger.warn("OrderController: markOrderPaid - Order payment update failed in service", { userId, orderId, message: resp.message, statusCode: resp.statusCode });
+      return res.status(resp.statusCode || STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: resp.message,
+        data: MESSAGES.DATA_NULL,
+      });
+    }
+
+    // Clear cache after payment update
     const cacheKey = `orders:${userId}`;
     await redisClient.del(cacheKey);
-    logger.info(" Redis cache cleared after marking order paid", { cacheKey });
+    logger.info("OrderController: markOrderPaid - Redis cache cleared after marking order paid", { cacheKey });
 
-    return res.status(resp.statusCode).json({
-      success: resp.success,
+    return res.status(resp.statusCode || STATUS_CODES.OK).json({
+      success: true,
       message: resp.message,
-      data: resp.data || null,
+      data: resp.data,
     });
   } catch (error) {
-    logger.error("MarkOrderPaid Controller Error", { error: error.message });
-    return res.status(500).json({
+    logger.error("OrderController: markOrderPaid - Unexpected error", { error: error.message, stack: error.stack, userId, orderId });
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "Server error while updating order payment",
-      data: null,
+      message: MESSAGES.ORDER_UPDATE_PAYMENT_ERROR, // Specific server error message for this action
+      data: MESSAGES.DATA_NULL,
     });
   }
 };

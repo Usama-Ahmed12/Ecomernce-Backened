@@ -1,7 +1,9 @@
 const cartService = require("../Services/cartservice");
 const { addToCartSchema } = require("../validation/cartValidation");
 const logger = require("../utils/logger");
-const redisClient = require("../utils/redis"); //  Redis client import
+const redisClient = require("../utils/redis");
+const STATUS_CODES = require('../utils/statusCodes'); // IMPORTED
+const MESSAGES = require('../utils/messages');     // IMPORTED
 
 //  Add to cart
 const addToCart = async (req, res) => {
@@ -12,7 +14,7 @@ const addToCart = async (req, res) => {
     const { error } = addToCartSchema.validate(req.body);
     if (error) {
       logger.warn("Add to Cart Validation Failed", { error: error.details[0].message });
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ // Updated
         success: false,
         message: error.details[0].message,
         data: null
@@ -36,16 +38,17 @@ const addToCart = async (req, res) => {
       logger.info(" Redis cache cleared after cart update", { cacheKey });
     }
 
-    return res.status(resp.statusCode || 200).json({
+    // Service se aane wala statusCode istemal karen, agar nahi hai to OK (default)
+    return res.status(resp.statusCode || STATUS_CODES.OK).json({ // Updated
       success: resp.success,
       message: resp.message,
       data: resp.data || null,
     });
   } catch (error) {
     logger.error("Add to Cart Error", { error: error.message, stack: error.stack });
-    return res.status(500).json({
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ // Updated
       success: false,
-      message: "Server error while adding to cart",
+      message: MESSAGES.SERVER_ERROR, // Updated
       data: null
     });
   }
@@ -62,9 +65,9 @@ const getCart = async (req, res) => {
     const cachedData = await redisClient.get(cacheKey);
     if (cachedData) {
       logger.info("📦 Cart fetched from Redis cache", { cacheKey });
-      return res.status(200).json({
+      return res.status(STATUS_CODES.OK).json({ // Updated
         success: true,
-        message: "Cart fetched successfully (from cache)",
+        message: MESSAGES.CART_FETCHED_FROM_CACHE, // New message can be added
         data: JSON.parse(cachedData),
       });
     }
@@ -74,7 +77,8 @@ const getCart = async (req, res) => {
 
     if (!resp.success) {
       logger.warn("Get Cart Service Failed", { message: resp.message });
-      return res.status(resp.statusCode || 404).json({
+      // Service se aane wala statusCode istemal karen, agar nahi hai to NOT_FOUND (default)
+      return res.status(resp.statusCode || STATUS_CODES.NOT_FOUND).json({ // Updated
         success: false,
         message: resp.message,
         data: null,
@@ -86,16 +90,17 @@ const getCart = async (req, res) => {
     logger.info(" Cart cached in Redis", { cacheKey });
 
     logger.info("Cart Fetched Successfully", { userId: req.user.userId });
-    return res.status(resp.statusCode || 200).json({
+    // Service se aane wala statusCode istemal karen, agar nahi hai to OK (default)
+    return res.status(resp.statusCode || STATUS_CODES.OK).json({ // Updated
       success: true,
-      message: "Cart fetched successfully (from DB)",
+      message: MESSAGES.CART_FETCHED_SUCCESSFULLY, // Updated
       data: resp.data || null,
     });
   } catch (error) {
     logger.error("Get Cart Error", { error: error.message, stack: error.stack });
-    return res.status(500).json({
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ // Updated
       success: false,
-      message: "Server error while fetching cart",
+      message: MESSAGES.SERVER_ERROR, // Updated
       data: null
     });
   }

@@ -1,6 +1,8 @@
 const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
-const logger = require("../utils/logger"); //  import logger
+const logger = require("../utils/logger");
+const STATUS_CODES = require('../utils/statusCodes'); // IMPORTED
+const MESSAGES = require('../utils/messages');     // IMPORTED
 
 //  Add to cart logic
 const addToCart = async ({ userId, productId, quantity }) => {
@@ -11,7 +13,7 @@ const addToCart = async ({ userId, productId, quantity }) => {
     const product = await Product.findById(productId);
     if (!product) {
       logger.warn(" Product not found in CartService", { productId });
-      return { success: false, message: "Product not found", statusCode: 404 };
+      return { success: false, message: MESSAGES.PRODUCT_NOT_FOUND, statusCode: STATUS_CODES.NOT_FOUND }; // Updated
     }
 
     // Find user's cart
@@ -42,10 +44,10 @@ const addToCart = async ({ userId, productId, quantity }) => {
     await cart.save();
     await cart.populate("items.product");
 
-    return { success: true, message: "Product added to cart", data: cart, statusCode: 200 };
+    return { success: true, message: MESSAGES.PRODUCT_ADDED_TO_CART, data: cart, statusCode: STATUS_CODES.OK }; // Updated
   } catch (error) {
     logger.error(" CartService AddToCart Error", { error: error.message, stack: error.stack });
-    return { success: false, message: error.message, statusCode: 500 };
+    return { success: false, message: MESSAGES.SERVER_ERROR, statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR }; // Updated
   }
 };
 
@@ -57,14 +59,14 @@ const getCart = async ({ userId }) => {
     const cart = await Cart.findOne({ user: userId }).populate("items.product");
     if (!cart) {
       logger.warn(" Cart not found", { userId });
-      return { success: false, message: "Cart not found", statusCode: 404 };
+      return { success: false, message: MESSAGES.CART_NOT_FOUND, statusCode: STATUS_CODES.NOT_FOUND }; // Updated
     }
 
     logger.info(" Cart fetched successfully", { userId, itemsCount: cart.items.length });
-    return { success: true, message: "Cart fetched successfully", data: cart, statusCode: 200 };
+    return { success: true, message: MESSAGES.CART_FETCHED_SUCCESSFULLY, data: cart, statusCode: STATUS_CODES.OK }; // Updated
   } catch (error) {
     logger.error(" CartService GetCart Error", { error: error.message, stack: error.stack });
-    return { success: false, message: error.message, statusCode: 500 };
+    return { success: false, message: MESSAGES.SERVER_ERROR, statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR }; // Updated
   }
 };
 
