@@ -2,11 +2,39 @@ const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
 const logger = require('../utils/logger');
 const sendEmail = require('../utils/sendEmail');
-const STATUS_CODES = require('../utils/statusCodes'); // <-- IMPORTED
-const MESSAGES = require('../utils/messages');     // <-- IMPORTED
+const STATUS_CODES = require('../utils/statusCodes');
+const MESSAGES = require('../utils/messages');
 require('dotenv').config();
 
-//  Create Order
+// ----------------- Cancel Old Pending Orders -----------------
+const cancelOldPendingOrders = async () => {
+  try {
+    const oldDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+
+    const result = await Order.updateMany(
+      { status: "Pending", createdAt: { $lt: oldDate } },
+      { status: "Cancelled", cancelledAt: new Date() }
+    );
+
+    logger.info(`🗑️ OrderService: Cancelled old pending orders = ${result.modifiedCount}`);
+
+    return { 
+      cancelledCount: result.modifiedCount, 
+      success: true, 
+      message: MESSAGES.OLD_PENDING_ORDERS_CANCELLED, 
+      statusCode: STATUS_CODES.OK 
+    };
+  } catch (error) {
+    logger.error("OrderService: Error cancelling old pending orders", { error: error.message, stack: error.stack });
+    return { 
+      success: false, 
+      message: MESSAGES.SERVER_ERROR, 
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR 
+    };
+  }
+};
+
+// ----------------- Create Order -----------------
 const createOrder = async ({ userId, userEmail, userName }) => {
   try {
     logger.info("OrderService: createOrder - Initiated for user", { userId, userEmail, userName });
@@ -28,12 +56,12 @@ const createOrder = async ({ userId, userEmail, userName }) => {
       user: userId,
       items: cart.items,
       totalAmount,
-      status: "Pending" // Initial status
+      status: "Pending"
     });
 
     await order.save();
 
-    //  Clear cart after order creation
+    // Clear cart after order creation
     cart.items = [];
     await cart.save();
     logger.info("OrderService: createOrder - Cart cleared for user", { userId });
@@ -57,8 +85,6 @@ const createOrder = async ({ userId, userEmail, userName }) => {
         `
       });
       logger.info("OrderService: createOrder - Admin notification email sent", { orderId: order._id });
-    } else {
-      logger.warn("OrderService: createOrder - ADMIN_EMAIL not configured, skipping admin notification.");
     }
 
     // User Notification Email
@@ -87,7 +113,7 @@ const createOrder = async ({ userId, userEmail, userName }) => {
   }
 };
 
-//  Get User Orders
+// ----------------- Get User Orders -----------------
 const getUserOrders = async ({ userId }) => {
   try {
     logger.info("OrderService: getUserOrders - Fetching orders for user", { userId });
@@ -104,7 +130,7 @@ const getUserOrders = async ({ userId }) => {
   }
 };
 
-//  Mark Order as Paid
+// ----------------- Mark Order as Paid -----------------
 const markOrderPaid = async ({ userId, orderId, userEmail, userName }) => {
   try {
     logger.info("OrderService: markOrderPaid - Initiated for order", { userId, orderId });
@@ -150,8 +176,6 @@ const markOrderPaid = async ({ userId, orderId, userEmail, userName }) => {
         `
       });
       logger.info("OrderService: markOrderPaid - Admin payment notification email sent", { orderId: order._id });
-    } else {
-      logger.warn("OrderService: markOrderPaid - ADMIN_EMAIL not configured, skipping admin notification.");
     }
 
     // User Invoice Email
@@ -180,4 +204,10 @@ const markOrderPaid = async ({ userId, orderId, userEmail, userName }) => {
   }
 };
 
-module.exports = { createOrder, getUserOrders, markOrderPaid };
+// ----------------- Module Exports -----------------
+module.exports = { 
+  createOrder, 
+  getUserOrders, 
+  markOrderPaid, 
+  cancelOldPendingOrders 
+};
