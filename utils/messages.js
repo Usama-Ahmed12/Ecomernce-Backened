@@ -56,6 +56,7 @@ const MESSAGES = {
   CART_ITEM_UPDATED: "Cart item quantity updated successfully.",
   CART_ITEM_REMOVED: "Item removed from cart.",
   CART_CLEARED: "Cart cleared successfully.",
+  OLD_CARTS_DELETED: "Abandoned carts older than 24 hours deleted successfully.", // NEW
 
   // Order Module Messages
   ORDER_PLACED_SUCCESS: "Your order has been placed successfully!",
@@ -69,6 +70,7 @@ const MESSAGES = {
   USER_EMAIL_NAME_MISSING: "User email or name is missing from the request.",
   ORDER_UPDATE_PAYMENT_ERROR: "Server error while updating order payment status.",
   ORDER_STATUS_UPDATED: "Order status updated successfully.",
+  OLD_PENDING_ORDERS_CANCELLED: "Old pending orders cancelled successfully.", // NEW
 
   // User Module Messages
   USER_PROFILE_FETCH_SUCCESS: "User profile fetched successfully.",
